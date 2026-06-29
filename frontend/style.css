@@ -1,0 +1,36 @@
+/* custom styles for scanner animation */
+.scanner-line {
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(to right, transparent, #22c55e, transparent);
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-shadow: 0 0 10px #22c55e, 0 0 20px #22c55e;
+    animation: scan 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes scan {
+    0% {
+        top: 0;
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        top: 100%;
+        opacity: 0;
+    }
+}
+
+/* Glassmorphism utility if needed */
+.glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
