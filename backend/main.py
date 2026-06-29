@@ -11,7 +11,7 @@ app = FastAPI(title="SpoilCheck AI Backend")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allow all for easy testing
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -79,18 +79,18 @@ def analyze_image(image_bytes: bytes):
     calculus_insight = (
         "<b>Calculus in Computer Vision:</b><br/>"
         "Sistem ini menggunakan operator Sobel untuk menghitung turunan parsial gambar: <br/>"
-        "$\\nabla f(x,y) = \\begin{bmatrix} \\frac{\\partial f}{\\partial x} \\\\ \\frac{\\partial f}{\\partial y} \\end{bmatrix}$.<br/>"
+        "\\(\\nabla f(x,y) = \\begin{bmatrix} \\frac{\\partial f}{\\partial x} \\\\ \\frac{\\partial f}{\\partial y} \\end{bmatrix}\\).<br/>"
         "Tingkat kebusukan (seperti jamur atau kerutan) menghasilkan perubahan drastis pada intensitas piksel (gradien tinggi). "
-        f"Rata-rata magnitudo gradien yang terdeteksi pada gambar ini adalah <b>{mean_gradient:.2f}</b>. Semakin tinggi nilainya, semakin kasar permukaannya."
+        f"Rata-rata magnitudo gradien yang terdeteksi pada gambar ini adalah <b>{float(mean_gradient):.2f}</b>. Semakin tinggi nilainya, semakin kasar permukaannya."
     )
     
     return {
         "status": status,
         "status_color": status_color,
-        "score": round(freshness_score),
+        "score": int(round(freshness_score)),
         "explanation": explanation,
         "calculus_insight": calculus_insight,
-        "mean_gradient": round(mean_gradient, 2)
+        "mean_gradient": float(round(mean_gradient, 2))
     }
 
 @app.post("/api/analyze")
@@ -108,4 +108,6 @@ def read_root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import os
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
