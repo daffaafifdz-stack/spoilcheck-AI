@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpoilCheck AI</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- MathJax for Calculus Rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-inter min-h-screen flex flex-col">
+    
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-leaf text-green-500 text-xl"></i>
+                <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-teal-500">SpoilCheck AI</h1>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-md mx-auto w-full p-4 flex flex-col space-y-6 pb-20">
+        
+        <!-- Header text -->
+        <div class="text-center space-y-1">
+            <h2 class="text-2xl font-bold">Cek Kesegaran Makanan</h2>
+            <p class="text-sm text-gray-500">Scan dengan kamera atau unggah foto untuk mendeteksi tingkat kebusukan.</p>
+        </div>
+
+        <!-- Scanner Area -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
+            
+            <!-- Video feed -->
+            <video id="cameraFeed" class="w-full h-full object-cover rounded-xl hidden" autoplay playsinline></video>
+            
+            <!-- Image Preview -->
+            <img id="imagePreview" class="w-full h-full object-cover rounded-xl hidden" alt="Food preview">
+
+            <!-- Scanner Overlay (Scanner Box) -->
+            <div id="scannerOverlay" class="absolute inset-0 border-4 border-dashed border-green-400 rounded-xl m-4 pointer-events-none hidden">
+                <div class="scanner-line"></div>
+            </div>
+
+            <!-- Placeholder content -->
+            <div id="placeholderContent" class="text-center flex flex-col items-center justify-center space-y-3">
+                <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 mb-2">
+                    <i class="fa-solid fa-camera text-2xl"></i>
+                </div>
+                <p class="text-sm text-gray-400">Belum ada foto.</p>
+            </div>
+            
+            <!-- Loading Overlay -->
+            <div id="loadingOverlay" class="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center hidden z-10">
+                <div class="w-10 h-10 border-4 border-green-100 border-t-green-500 rounded-full animate-spin"></div>
+                <p class="mt-3 text-sm font-semibold text-gray-600 animate-pulse">AI sedang menganalisis...</p>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 gap-3">
+            <button id="btnCamera" class="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 px-4 rounded-xl font-medium shadow-md hover:shadow-lg transition-all active:scale-95">
+                <i class="fa-solid fa-camera"></i>
+                <span>Buka Kamera</span>
+            </button>
+            <button id="btnUpload" class="flex items-center justify-center space-x-2 bg-white border border-gray-200 text-gray-700 py-3 px-4 rounded-xl font-medium shadow-sm hover:bg-gray-50 transition-all active:scale-95">
+                <i class="fa-solid fa-upload"></i>
+                <span>Unggah</span>
+            </button>
+            <input type="file" id="fileInput" accept="image/*" class="hidden">
+        </div>
+        
+        <!-- Capture Button (hidden by default) -->
+        <button id="btnCapture" class="hidden w-full flex items-center justify-center space-x-2 bg-green-500 text-white py-3 px-4 rounded-xl font-bold shadow-md hover:shadow-lg transition-all active:scale-95">
+            <i class="fa-solid fa-camera-retro"></i>
+            <span>Ambil Foto</span>
+        </button>
+
+        <!-- Results Area -->
+        <div id="resultsArea" class="hidden space-y-4">
+            <h3 class="text-lg font-bold border-b pb-2">Hasil Analisis</h3>
+            
+            <!-- Status Card -->
+            <div id="statusCard" class="p-4 rounded-xl border flex items-center space-x-4">
+                <div id="statusIcon" class="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl">
+                    <!-- Icon injected via JS -->
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Status Makanan</p>
+                    <p id="statusText" class="text-xl font-bold"></p>
+                </div>
+            </div>
+
+            <!-- Score Progress Bar -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <div class="flex justify-between items-end mb-2">
+                    <span class="text-sm font-semibold text-gray-600">Skor Kesegaran</span>
+                    <span id="scoreText" class="text-2xl font-bold text-gray-800"></span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3 mb-1 overflow-hidden">
+                    <div id="scoreBar" class="bg-green-500 h-3 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+                </div>
+                <p class="text-xs text-right text-gray-400">100% = Sangat Segar</p>
+            </div>
+
+            <!-- Generative Explanation -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <div class="flex items-center space-x-2 mb-2">
+                    <i class="fa-solid fa-robot text-indigo-500"></i>
+                    <h4 class="font-bold text-sm">Penjelasan AI</h4>
+                </div>
+                <p id="explanationText" class="text-sm text-gray-600 leading-relaxed"></p>
+            </div>
+
+            <!-- Calculus Insight Box -->
+            <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-5 rounded-xl shadow-md text-white relative overflow-hidden">
+                <!-- Decorative background math -->
+                <div class="absolute -right-4 -top-4 opacity-5 text-6xl font-serif pointer-events-none">∫f(x)dx</div>
+                
+                <div class="flex items-center space-x-2 mb-3 relative z-10">
+                    <i class="fa-solid fa-square-root-variable text-blue-400"></i>
+                    <h4 class="font-bold text-sm tracking-wide text-blue-300 uppercase">Calculus Insight</h4>
+                </div>
+                <p id="calculusText" class="text-xs text-gray-300 leading-relaxed relative z-10"></p>
+            </div>
+            
+            <!-- Reset Button -->
+            <button id="btnReset" class="w-full py-3 bg-gray-200 text-gray-700 rounded-xl font-medium mt-4">
+                Scan Lagi
+            </button>
+        </div>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
